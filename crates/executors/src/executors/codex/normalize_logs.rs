@@ -999,6 +999,9 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                 }
                 EventMsg::TokenCount(payload) => {
                     if let Some(info) = payload.info {
+                        let last_usage = &info.last_token_usage;
+                        let output_tokens =
+                            last_usage.output_tokens + last_usage.reasoning_output_tokens;
                         add_normalized_entry(
                             &msg_store,
                             &entry_index,
@@ -1011,6 +1014,16 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                                             .model_context_window
                                             .unwrap_or_default()
                                             as u32,
+                                        input_tokens: Some(last_usage.input_tokens as u32),
+                                        output_tokens: Some(output_tokens as u32),
+                                        cache_creation_input_tokens: None,
+                                        cache_read_input_tokens: if last_usage.cached_input_tokens
+                                            > 0
+                                        {
+                                            Some(last_usage.cached_input_tokens as u32)
+                                        } else {
+                                            None
+                                        },
                                     },
                                 ),
                                 content: format!(

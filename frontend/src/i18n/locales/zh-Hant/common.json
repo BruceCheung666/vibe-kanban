@@ -331,6 +331,9 @@
     "label": "上下文使用量",
     "emptyTooltip": "上下文使用量將在下一次回覆後顯示",
     "tooltip": "上下文：{{percentage}}% · {{used}} / {{total}} tokens",
+    "sessionUsage": "本次對話消耗 {{tokens}} token",
+    "sessionUsageDetailed": "Token 用量：總計={{total}} 輸入={{input}} 輸出={{output}}",
+    "sessionUsageDetailedWithCache": "Token 用量：總計={{total}} 輸入={{input}}（+ {{cached}} 快取）輸出={{output}}",
     "ariaLabel": "上下文使用量：{{percentage}}%"
   },
   "shortcuts": {

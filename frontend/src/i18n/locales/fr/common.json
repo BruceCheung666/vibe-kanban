@@ -331,6 +331,9 @@
     "label": "Utilisation du contexte",
     "emptyTooltip": "L'utilisation du contexte apparaît après la prochaine réponse",
     "tooltip": "Contexte : {{percentage}}% · {{used}} / {{total}} tokens",
+    "sessionUsage": "Tokens utilisés pour cette conversation : {{tokens}}",
+    "sessionUsageDetailed": "Utilisation des tokens : total={{total}} entrée={{input}} sortie={{output}}",
+    "sessionUsageDetailedWithCache": "Utilisation des tokens : total={{total}} entrée={{input}} (+ {{cached}} en cache) sortie={{output}}",
     "ariaLabel": "Utilisation du contexte : {{percentage}}%"
   },
   "shortcuts": {

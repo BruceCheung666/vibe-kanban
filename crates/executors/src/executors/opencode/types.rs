@@ -21,6 +21,9 @@ pub enum OpencodeExecutorEvent {
     TokenUsage {
         total_tokens: u32,
         model_context_window: u32,
+        input_tokens: u32,
+        output_tokens: u32,
+        cache_read_input_tokens: u32,
     },
     ApprovalResponse {
         tool_call_id: String,

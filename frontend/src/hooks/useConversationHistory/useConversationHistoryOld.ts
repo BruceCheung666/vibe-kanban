@@ -4,10 +4,12 @@ import {
   ExecutionProcessStatus,
   NormalizedEntry,
   PatchType,
+  TokenUsageInfo,
   ToolStatus,
 } from 'shared/types';
 import { useExecutionProcessesContext } from '@/contexts/ExecutionProcessesContext';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { streamJsonPatchEntries } from '@/utils/streamJsonPatchEntries';
 import type {
   AddEntryType,
@@ -24,10 +26,18 @@ import {
   REMAINING_BATCH_SIZE,
 } from './constants';
 
+type TokenUsageInfoDetails = TokenUsageInfo & {
+  input_tokens?: number | null;
+  output_tokens?: number | null;
+  cache_creation_input_tokens?: number | null;
+  cache_read_input_tokens?: number | null;
+};
+
 export const useConversationHistoryOld = ({
   attempt,
   onEntriesUpdated,
 }: UseConversationHistoryParams): UseConversationHistoryResult => {
+  const { t } = useTranslation('common');
   const { executionProcessesVisible: executionProcessesRaw } =
     useExecutionProcessesContext();
   const executionProcesses = useRef<ExecutionProcess[]>(executionProcessesRaw);
@@ -56,6 +66,47 @@ export const useConversationHistoryOld = ({
         ep.run_reason === 'codingagent'
     );
   }, [executionProcessesRaw]);
+
+  const formatTokenUsageMessage = useCallback(
+    (tokenUsageInfo: TokenUsageInfoDetails) => {
+      const formatNumber = (value: number) => value.toLocaleString();
+      const inputTokens = tokenUsageInfo.input_tokens;
+      const outputTokens = tokenUsageInfo.output_tokens;
+      const cachedTokens =
+        (tokenUsageInfo.cache_creation_input_tokens ?? 0) +
+        (tokenUsageInfo.cache_read_input_tokens ?? 0);
+      const totalTokens =
+        inputTokens == null || outputTokens == null
+          ? tokenUsageInfo.total_tokens
+          : inputTokens + outputTokens;
+      const formattedTotal = formatNumber(totalTokens);
+
+      if (inputTokens == null || outputTokens == null) {
+        return t('contextUsage.sessionUsage', {
+          tokens: formattedTotal,
+        });
+      }
+
+      const formattedInput = formatNumber(inputTokens);
+      const formattedOutput = formatNumber(outputTokens);
+
+      if (cachedTokens > 0) {
+        return t('contextUsage.sessionUsageDetailedWithCache', {
+          total: formattedTotal,
+          input: formattedInput,
+          cached: formatNumber(cachedTokens),
+          output: formattedOutput,
+        });
+      }
+
+      return t('contextUsage.sessionUsageDetailed', {
+        total: formattedTotal,
+        input: formattedInput,
+        output: formattedOutput,
+      });
+    },
+    [t]
+  );
 
   const loadEntriesForHistoricExecutionProcess = (
     executionProcess: ExecutionProcess
@@ -249,6 +300,29 @@ export const useConversationHistoryOld = ({
             if (isProcessRunning && !hasPendingApprovalEntry) {
               entries.push(makeLoadingPatch(p.executionProcess.id));
             }
+
+            const tokenUsageEntry = p.entries.findLast(
+              (e) =>
+                e.type === 'NORMALIZED_ENTRY' &&
+                e.content.entry_type.type === 'token_usage_info'
+            );
+            if (!isProcessRunning && tokenUsageEntry?.type === 'NORMALIZED_ENTRY') {
+              const tokenUsageInfo = tokenUsageEntry.content
+                .entry_type as TokenUsageInfoDetails;
+              const tokenUsageMessage: NormalizedEntry = {
+                entry_type: {
+                  type: 'system_message',
+                },
+                content: formatTokenUsageMessage(tokenUsageInfo),
+                timestamp: null,
+              };
+              entries.push({
+                type: 'NORMALIZED_ENTRY',
+                content: tokenUsageMessage,
+                patchKey: `${p.executionProcess.id}:token-usage`,
+                executionProcessId: p.executionProcess.id,
+              });
+            }
           } else if (
             p.executionProcess.executor_action.typ.type === 'ScriptRequest'
           ) {
@@ -352,7 +426,7 @@ export const useConversationHistoryOld = ({
 
       return allEntries;
     },
-    []
+    [formatTokenUsageMessage]
   );
 
   const emitEntries = useCallback(
