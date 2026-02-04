@@ -29,6 +29,11 @@ impl From<v1::EditorType> for EditorType {
             v1::EditorType::Cursor => EditorType::Cursor,
             v1::EditorType::Windsurf => EditorType::Windsurf,
             v1::EditorType::IntelliJ => EditorType::IntelliJ,
+            v1::EditorType::Clion => EditorType::Clion,
+            v1::EditorType::Rider => EditorType::Rider,
+            v1::EditorType::WebStorm => EditorType::WebStorm,
+            v1::EditorType::GoLand => EditorType::GoLand,
+            v1::EditorType::RustRover => EditorType::RustRover,
             v1::EditorType::Zed => EditorType::Zed,
             v1::EditorType::Custom => EditorType::Custom,
         }

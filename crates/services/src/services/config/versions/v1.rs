@@ -70,6 +70,11 @@ pub(super) enum EditorType {
     Cursor,
     Windsurf,
     IntelliJ,
+    Clion,
+    Rider,
+    WebStorm,
+    GoLand,
+    RustRover,
     Zed,
     Custom,
 }

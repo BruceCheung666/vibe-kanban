@@ -29,6 +29,16 @@ export function getIdeName(editorType: EditorType | undefined | null): string {
       return 'Windsurf';
     case EditorType.INTELLI_J:
       return 'IntelliJ IDEA';
+    case EditorType.CLION:
+      return 'CLion';
+    case EditorType.RIDER:
+      return 'Rider';
+    case EditorType.WEB_STORM:
+      return 'WebStorm';
+    case EditorType.GO_LAND:
+      return 'GoLand';
+    case EditorType.RUST_ROVER:
+      return 'RustRover';
     case EditorType.ZED:
       return 'Zed';
     case EditorType.XCODE:
@@ -38,6 +48,7 @@ export function getIdeName(editorType: EditorType | undefined | null): string {
     case EditorType.GOOGLE_ANTIGRAVITY:
       return 'Antigravity';
   }
+  return 'IDE';
 }
 
 export function IdeIcon({ editorType, className = 'h-4 w-4' }: IdeIconProps) {
@@ -71,6 +82,21 @@ export function IdeIcon({ editorType, className = 'h-4 w-4' }: IdeIconProps) {
     case EditorType.INTELLI_J:
       ideIconPath = '/ide/intellij.svg';
       break;
+    case EditorType.CLION:
+      ideIconPath = '/ide/clion.svg';
+      break;
+    case EditorType.RIDER:
+      ideIconPath = '/ide/rider.svg';
+      break;
+    case EditorType.WEB_STORM:
+      ideIconPath = '/ide/webstorm.svg';
+      break;
+    case EditorType.GO_LAND:
+      ideIconPath = '/ide/goland.svg';
+      break;
+    case EditorType.RUST_ROVER:
+      ideIconPath = '/ide/rustrover.svg';
+      break;
     case EditorType.ZED:
       ideIconPath = isDark ? '/ide/zed-dark.svg' : '/ide/zed-light.svg';
       break;
@@ -82,6 +108,10 @@ export function IdeIcon({ editorType, className = 'h-4 w-4' }: IdeIconProps) {
         ? '/ide/antigravity-dark.svg'
         : '/ide/antigravity-light.svg';
       break;
+  }
+
+  if (!ideIconPath) {
+    return <Code2 className={className} />;
   }
 
   return <img src={ideIconPath} alt={ideName} className={className} />;
