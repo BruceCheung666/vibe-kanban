@@ -67,7 +67,7 @@
         "title": "에디터",
         "description": "코드 편집 환경을 구성하세요.",
         "type": {
-          "label": "에디터 유형",
+          "label": "기본 에디터 유형",
           "placeholder": "에디터 선택",
           "helper": "선호하는 코드 에디터 인터페이스를 선택하세요."
         },
@@ -450,6 +450,12 @@
           "noBranches": "브랜치를 찾을 수 없습니다",
           "loading": "브랜치 로딩 중...",
           "useCurrent": "현재 브랜치 사용"
+        },
+        "editorType": {
+          "label": "에디터 유형",
+          "placeholder": "에디터 유형 선택",
+          "helper": "이 저장소의 에디터 유형을 선택하세요.",
+          "defaultLabel": "기본 ({{editor}})"
         }
       },
       "scripts": {

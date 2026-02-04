@@ -123,6 +123,7 @@ impl WorkspaceRepo {
                       r.dev_server_script,
                       r.default_target_branch,
                       r.default_working_dir,
+                      r.editor_type,
                       r.created_at as "created_at!: DateTime<Utc>",
                       r.updated_at as "updated_at!: DateTime<Utc>"
                FROM repos r
@@ -152,6 +153,7 @@ impl WorkspaceRepo {
                       r.dev_server_script,
                       r.default_target_branch,
                       r.default_working_dir,
+                      r.editor_type,
                       r.created_at as "created_at!: DateTime<Utc>",
                       r.updated_at as "updated_at!: DateTime<Utc>",
                       wr.target_branch
@@ -180,6 +182,7 @@ impl WorkspaceRepo {
                     dev_server_script: row.dev_server_script,
                     default_target_branch: row.default_target_branch,
                     default_working_dir: row.default_working_dir,
+                    editor_type: row.editor_type,
                     created_at: row.created_at,
                     updated_at: row.updated_at,
                 },
@@ -269,6 +272,7 @@ impl WorkspaceRepo {
                       r.dev_server_script,
                       r.default_target_branch,
                       r.default_working_dir,
+                      r.editor_type,
                       r.created_at as "created_at!: DateTime<Utc>",
                       r.updated_at as "updated_at!: DateTime<Utc>"
                FROM repos r

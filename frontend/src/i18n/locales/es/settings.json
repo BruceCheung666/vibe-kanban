@@ -67,7 +67,7 @@
         "title": "Editor",
         "description": "Configura cómo quieres editar tu código.",
         "type": {
-          "label": "Tipo de Editor",
+          "label": "Tipo de Editor Predeterminado",
           "placeholder": "Seleccionar editor",
           "helper": "Elige tu editor de código preferido."
         },
@@ -450,6 +450,12 @@
           "noBranches": "No se encontraron ramas",
           "loading": "Cargando ramas...",
           "useCurrent": "Usar rama actual"
+        },
+        "editorType": {
+          "label": "Tipo de Editor",
+          "placeholder": "Seleccionar tipo de editor",
+          "helper": "Elige el tipo de editor para este repositorio.",
+          "defaultLabel": "Predeterminado ({{editor}})"
         }
       },
       "scripts": {

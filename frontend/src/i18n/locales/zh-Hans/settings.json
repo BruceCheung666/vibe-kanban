@@ -67,7 +67,7 @@
         "title": "编辑器",
         "description": "配置您的代码编辑体验。",
         "type": {
-          "label": "编辑器类型",
+          "label": "默认编辑器类型",
           "placeholder": "选择编辑器",
           "helper": "选择您喜欢的代码编辑器界面。"
         },
@@ -450,6 +450,12 @@
           "noBranches": "未找到分支",
           "loading": "正在加载分支...",
           "useCurrent": "使用当前分支"
+        },
+        "editorType": {
+          "label": "编辑器类型",
+          "placeholder": "选择编辑器类型",
+          "helper": "选择此仓库的编辑器类型。",
+          "defaultLabel": "默认({{editor}})"
         }
       },
       "scripts": {

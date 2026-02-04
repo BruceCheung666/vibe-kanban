@@ -856,8 +856,17 @@ export const Actions = {
     execute: async (ctx) => {
       if (!ctx.currentWorkspaceId) return;
       try {
+        let editorType: EditorType | null = null;
+        try {
+          const repos = await attemptsApi.getRepos(ctx.currentWorkspaceId);
+          if (repos.length === 1) {
+            editorType = repos[0].editor_type ?? null;
+          }
+        } catch (error) {
+          console.warn('Failed to load workspace repos for editor:', error);
+        }
         const response = await attemptsApi.openEditor(ctx.currentWorkspaceId, {
-          editor_type: null,
+          editor_type: editorType,
           file_path: null,
         });
         if (response.url) {

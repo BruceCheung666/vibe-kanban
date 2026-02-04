@@ -67,7 +67,7 @@
         "title": "エディター",
         "description": "コード編集体験を設定します。",
         "type": {
-          "label": "エディタータイプ",
+          "label": "デフォルトエディタータイプ",
           "placeholder": "エディターを選択",
           "helper": "お好みのコードエディターインターフェースを選択してください。"
         },
@@ -450,6 +450,12 @@
           "noBranches": "ブランチが見つかりません",
           "loading": "ブランチを読み込み中...",
           "useCurrent": "現在のブランチを使用"
+        },
+        "editorType": {
+          "label": "エディタータイプ",
+          "placeholder": "エディタータイプを選択",
+          "helper": "このリポジトリのエディタータイプを選択します。",
+          "defaultLabel": "デフォルト ({{editor}})"
         }
       },
       "scripts": {

@@ -67,7 +67,7 @@
         "title": "編輯器",
         "description": "設定您的程式碼編輯體驗。",
         "type": {
-          "label": "編輯器類型",
+          "label": "預設編輯器類型",
           "placeholder": "選擇編輯器",
           "helper": "選擇您偏好的程式碼編輯器介面。"
         },
@@ -450,6 +450,12 @@
           "noBranches": "找不到分支",
           "loading": "正在載入分支...",
           "useCurrent": "使用目前分支"
+        },
+        "editorType": {
+          "label": "編輯器類型",
+          "placeholder": "選擇編輯器類型",
+          "helper": "選擇此儲存庫的編輯器類型。",
+          "defaultLabel": "預設（{{editor}}）"
         }
       },
       "scripts": {

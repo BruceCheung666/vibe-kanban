@@ -67,7 +67,7 @@
         "title": "Editor",
         "description": "Configure your code editing experience.",
         "type": {
-          "label": "Editor Type",
+          "label": "Default Editor Type",
           "placeholder": "Select editor",
           "helper": "Choose your preferred code editor interface."
         },
@@ -450,6 +450,12 @@
           "noBranches": "No branches found",
           "loading": "Loading branches...",
           "useCurrent": "Use current branch"
+        },
+        "editorType": {
+          "label": "Editor Type",
+          "placeholder": "Select editor type",
+          "helper": "Choose the editor type for this repository. Single-repo workspaces will prefer this setting.",
+          "defaultLabel": "Default ({{editor}})"
         }
       },
       "scripts": {

@@ -27,10 +27,14 @@ import { AutoExpandingTextarea } from '@/components/ui/auto-expanding-textarea';
 import { MultiFileSearchTextarea } from '@/components/ui/multi-file-search-textarea';
 import { repoApi } from '@/lib/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Repo, UpdateRepo } from 'shared/types';
+import { useUserSystem } from '@/components/ConfigProvider';
+import { getIdeName } from '@/components/ide/IdeIcon';
+import { toPrettyCase } from '@/utils/string';
+import { EditorType, type Repo, type UpdateRepo } from 'shared/types';
 
 interface RepoScriptsFormState {
   display_name: string;
+  editor_type: EditorType | 'DEFAULT';
   setup_script: string;
   parallel_setup_script: boolean;
   cleanup_script: string;
@@ -38,9 +42,12 @@ interface RepoScriptsFormState {
   dev_server_script: string;
 }
 
+const DEFAULT_EDITOR_OPTION = 'DEFAULT' as const;
+
 function repoToFormState(repo: Repo): RepoScriptsFormState {
   return {
     display_name: repo.display_name,
+    editor_type: repo.editor_type ?? DEFAULT_EDITOR_OPTION,
     setup_script: repo.setup_script ?? '',
     parallel_setup_script: repo.parallel_setup_script,
     cleanup_script: repo.cleanup_script ?? '',
@@ -54,6 +61,7 @@ export function ReposSettings() {
   const repoIdParam = searchParams.get('repoId') ?? '';
   const { t } = useTranslation('settings');
   const queryClient = useQueryClient();
+  const { config } = useUserSystem();
 
   // Fetch all repos
   const {
@@ -77,6 +85,19 @@ export function ReposSettings() {
 
   // Get OS-appropriate script placeholders
   const placeholders = useScriptPlaceholders();
+
+  const editorOptions = useMemo(() => {
+    const defaultLabel = t('settings.repos.general.editorType.defaultLabel', {
+      editor: getIdeName(config?.editor?.editor_type ?? null),
+    });
+    return [
+      { value: DEFAULT_EDITOR_OPTION, label: defaultLabel },
+      ...Object.values(EditorType).map((editor) => ({
+        value: editor,
+        label: toPrettyCase(editor),
+      })),
+    ];
+  }, [config?.editor?.editor_type, t]);
 
   // Check for unsaved changes
   const hasUnsavedChanges = useMemo(() => {
@@ -177,6 +198,10 @@ export function ReposSettings() {
     try {
       const updateData: UpdateRepo = {
         display_name: draft.display_name.trim() || null,
+        editor_type:
+          draft.editor_type === DEFAULT_EDITOR_OPTION
+            ? null
+            : draft.editor_type,
         setup_script: draft.setup_script.trim() || null,
         cleanup_script: draft.cleanup_script.trim() || null,
         copy_files: draft.copy_files.trim() || null,
@@ -316,6 +341,38 @@ export function ReposSettings() {
                 />
                 <p className="text-sm text-muted-foreground">
                   {t('settings.repos.general.displayName.helper')}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="repo-editor-type">
+                  {t('settings.repos.general.editorType.label')}
+                </Label>
+                <Select
+                  value={draft.editor_type}
+                  onValueChange={(value) =>
+                    updateDraft({
+                      editor_type: value as RepoScriptsFormState['editor_type'],
+                    })
+                  }
+                >
+                  <SelectTrigger id="repo-editor-type">
+                    <SelectValue
+                      placeholder={t(
+                        'settings.repos.general.editorType.placeholder'
+                      )}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {editorOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  {t('settings.repos.general.editorType.helper')}
                 </p>
               </div>
 

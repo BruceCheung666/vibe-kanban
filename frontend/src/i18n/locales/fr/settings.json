@@ -67,7 +67,7 @@
         "title": "Éditeur",
         "description": "Configurez votre expérience d'édition de code.",
         "type": {
-          "label": "Type d'éditeur",
+          "label": "Type d'éditeur par défaut",
           "placeholder": "Sélectionner un éditeur",
           "helper": "Choisissez votre interface d'éditeur de code préférée."
         },
@@ -450,6 +450,12 @@
           "noBranches": "Aucune branche trouvée",
           "loading": "Chargement des branches...",
           "useCurrent": "Utiliser la branche actuelle"
+        },
+        "editorType": {
+          "label": "Type d'éditeur",
+          "placeholder": "Sélectionner le type d'éditeur",
+          "helper": "Choisissez le type d'éditeur pour ce dépôt.",
+          "defaultLabel": "Par défaut ({{editor}})"
         }
       },
       "scripts": {

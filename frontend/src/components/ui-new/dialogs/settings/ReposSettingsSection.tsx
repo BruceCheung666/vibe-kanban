@@ -5,8 +5,11 @@ import { isEqual } from 'lodash';
 import { GitBranchIcon, SpinnerIcon } from '@phosphor-icons/react';
 import { useRepoBranches } from '@/hooks/useRepoBranches';
 import { useScriptPlaceholders } from '@/hooks/useScriptPlaceholders';
+import { useUserSystem } from '@/components/ConfigProvider';
+import { getIdeName } from '@/components/ide/IdeIcon';
 import { repoApi } from '@/lib/api';
-import type { Repo, UpdateRepo } from 'shared/types';
+import { toPrettyCase } from '@/utils/string';
+import { EditorType, type Repo, type UpdateRepo } from 'shared/types';
 import { SearchableDropdownContainer } from '../../containers/SearchableDropdownContainer';
 import {
   DropdownMenu,
@@ -19,6 +22,7 @@ import {
   SettingsCard,
   SettingsField,
   SettingsInput,
+  SettingsSelect,
   SettingsTextarea,
   SettingsCheckbox,
   SettingsSaveBar,
@@ -28,6 +32,7 @@ interface RepoScriptsFormState {
   display_name: string;
   default_working_dir: string;
   default_target_branch: string;
+  editor_type: EditorType | 'DEFAULT';
   setup_script: string;
   parallel_setup_script: boolean;
   cleanup_script: string;
@@ -36,11 +41,14 @@ interface RepoScriptsFormState {
   dev_server_script: string;
 }
 
+const DEFAULT_EDITOR_OPTION = 'DEFAULT' as const;
+
 function repoToFormState(repo: Repo): RepoScriptsFormState {
   return {
     display_name: repo.display_name,
     default_working_dir: repo.default_working_dir ?? '',
     default_target_branch: repo.default_target_branch ?? '',
+    editor_type: repo.editor_type ?? DEFAULT_EDITOR_OPTION,
     setup_script: repo.setup_script ?? '',
     parallel_setup_script: repo.parallel_setup_script,
     cleanup_script: repo.cleanup_script ?? '',
@@ -53,6 +61,7 @@ function repoToFormState(repo: Repo): RepoScriptsFormState {
 export function ReposSettingsSection() {
   const { t } = useTranslation('settings');
   const queryClient = useQueryClient();
+  const { config } = useUserSystem();
 
   // Fetch all repos
   const {
@@ -94,6 +103,19 @@ export function ReposSettingsSection() {
 
   // Get OS-appropriate script placeholders
   const placeholders = useScriptPlaceholders();
+
+  const editorOptions = useMemo(() => {
+    const defaultLabel = t('settings.repos.general.editorType.defaultLabel', {
+      editor: getIdeName(config?.editor?.editor_type ?? null),
+    });
+    return [
+      { value: DEFAULT_EDITOR_OPTION, label: defaultLabel },
+      ...Object.values(EditorType).map((editor) => ({
+        value: editor,
+        label: toPrettyCase(editor),
+      })),
+    ];
+  }, [config?.editor?.editor_type, t]);
 
   // Check for unsaved changes
   const hasUnsavedChanges = useMemo(() => {
@@ -156,6 +178,10 @@ export function ReposSettingsSection() {
         display_name: draft.display_name.trim() || null,
         default_working_dir: draft.default_working_dir.trim() || null,
         default_target_branch: draft.default_target_branch.trim() || null,
+        editor_type:
+          draft.editor_type === DEFAULT_EDITOR_OPTION
+            ? null
+            : draft.editor_type,
         setup_script: draft.setup_script.trim() || null,
         cleanup_script: draft.cleanup_script.trim() || null,
         archive_script: draft.archive_script.trim() || null,
@@ -315,6 +341,18 @@ export function ReposSettingsSection() {
                 placeholder={t(
                   'settings.repos.general.defaultWorkingDir.placeholder'
                 )}
+              />
+            </SettingsField>
+
+            <SettingsField
+              label={t('settings.repos.general.editorType.label')}
+              description={t('settings.repos.general.editorType.helper')}
+            >
+              <SettingsSelect
+                value={draft.editor_type}
+                options={editorOptions}
+                onChange={(value) => updateDraft({ editor_type: value })}
+                placeholder={t('settings.repos.general.editorType.placeholder')}
               />
             </SettingsField>
 
