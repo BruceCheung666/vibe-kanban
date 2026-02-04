@@ -1,9 +1,9 @@
-import type { RefObject } from 'react';
+import { useRef, useState, type RefObject } from 'react';
 import { CopyIcon, type Icon } from '@phosphor-icons/react';
-import type { EditorType } from 'shared/types';
+import type { EditorType, RepoWithTargetBranch } from 'shared/types';
 import { cn } from '@/lib/utils';
 import { Tooltip } from './Tooltip';
-import { IdeIcon } from '@/components/ide/IdeIcon';
+import { IdeIcon, getIdeName } from '@/components/ide/IdeIcon';
 import { useContextBarPosition } from '@/hooks/useContextBarPosition';
 import {
   type ActionDefinition,
@@ -18,6 +18,12 @@ import {
   getActionTooltip,
 } from '../actions/useActionVisibility';
 import { CopyButton } from '../containers/CopyButton';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from './Dropdown';
 
 /**
  * Check if a ContextBarItem is a divider
@@ -105,8 +111,11 @@ export interface ContextBarProps {
   actionContext: ActionVisibilityContext;
   // Handler to execute an action
   onExecuteAction: (action: ActionDefinition) => void;
+  // Handler to open repo in IDE
+  onOpenRepoInIde?: (repoId: string) => void;
   // IDE editor type for rendering IdeIcon
   editorType?: EditorType | null;
+  repos?: RepoWithTargetBranch[];
 }
 
 /**
@@ -141,10 +150,30 @@ export function ContextBar({
   secondaryItems = [],
   actionContext,
   onExecuteAction,
+  onOpenRepoInIde,
   editorType,
+  repos = [],
 }: ContextBarProps) {
   const { style, isDragging, dragHandlers } =
     useContextBarPosition(containerRef);
+  const [isRepoMenuOpen, setIsRepoMenuOpen] = useState(false);
+  const repoMenuCloseTimeout = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+
+  const cancelRepoMenuClose = () => {
+    if (repoMenuCloseTimeout.current) {
+      clearTimeout(repoMenuCloseTimeout.current);
+      repoMenuCloseTimeout.current = null;
+    }
+  };
+
+  const scheduleRepoMenuClose = () => {
+    cancelRepoMenuClose();
+    repoMenuCloseTimeout.current = setTimeout(() => {
+      setIsRepoMenuOpen(false);
+    }, 120);
+  };
 
   // Render a single action item
   const renderActionItem = (action: ActionDefinition, key: string) => {
@@ -161,6 +190,54 @@ export function ContextBar({
     // Handle special icon types
     if (isSpecialIcon(iconType)) {
       if (iconType === 'ide-icon') {
+        const repoMenuEnabled = action.id === 'open-in-ide' && repos.length > 0;
+        if (repoMenuEnabled) {
+          return (
+            <DropdownMenu key={key} open={isRepoMenuOpen} modal={false}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="flex items-center justify-center transition-colors drop-shadow-[2px_2px_4px_rgba(121,121,121,0.25)]"
+                  aria-label={tooltip}
+                  onPointerEnter={() => {
+                    cancelRepoMenuClose();
+                    setIsRepoMenuOpen(true);
+                  }}
+                  onPointerLeave={scheduleRepoMenuClose}
+                  disabled={!enabled}
+                >
+                  <IdeIcon
+                    editorType={editorType}
+                    className="size-icon-xs opacity-50 group-hover:opacity-80 transition-opacity"
+                  />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="left"
+                align="center"
+                onPointerEnter={cancelRepoMenuClose}
+                onPointerLeave={scheduleRepoMenuClose}
+              >
+                {repos.map((repo) => {
+                  const repoEditorType = repo.editor_type ?? editorType ?? null;
+                  const repoTooltip = `Open in ${getIdeName(repoEditorType)}`;
+                  return (
+                    <Tooltip key={repo.id} content={repoTooltip} side="left">
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          setIsRepoMenuOpen(false);
+                          onOpenRepoInIde?.(repo.id);
+                        }}
+                      >
+                        {repo.display_name || repo.name}
+                      </DropdownMenuItem>
+                    </Tooltip>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        }
+
         // Render IDE icon
         return (
           <Tooltip

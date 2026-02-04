@@ -57,9 +57,5 @@ export function CopyButton({
     </button>
   );
 
-  return (
-    <Tooltip content={tooltip} side="top">
-      {button}
-    </Tooltip>
-  );
+  return <Tooltip content={tooltip} side="left">{button}</Tooltip>;
 }

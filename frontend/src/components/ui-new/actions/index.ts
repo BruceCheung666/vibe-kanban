@@ -68,7 +68,6 @@ import { RebaseDialog } from '@/components/ui-new/dialogs/RebaseDialog';
 import { ResolveConflictsDialog } from '@/components/ui-new/dialogs/ResolveConflictsDialog';
 import { RenameWorkspaceDialog } from '@/components/ui-new/dialogs/RenameWorkspaceDialog';
 import { CreatePRDialog } from '@/components/dialogs/tasks/CreatePRDialog';
-import { getIdeName } from '@/components/ide/IdeIcon';
 import { EditorSelectionDialog } from '@/components/dialogs/tasks/EditorSelectionDialog';
 import { StartReviewDialog } from '@/components/dialogs/tasks/StartReviewDialog';
 import posthog from 'posthog-js';
@@ -848,11 +847,11 @@ export const Actions = {
   // === ContextBar Actions ===
   OpenInIDE: {
     id: 'open-in-ide',
-    label: 'Open in IDE',
+    label: 'Open',
     icon: 'ide-icon' as const,
     requiresTarget: ActionTargetType.NONE,
     isVisible: (ctx) => ctx.hasWorkspace,
-    getTooltip: (ctx) => `Open in ${getIdeName(ctx.editorType)}`,
+    getTooltip: () => 'Open',
     execute: async (ctx) => {
       if (!ctx.currentWorkspaceId) return;
       try {
@@ -1163,9 +1162,10 @@ export const Actions = {
     isVisible: (ctx) => ctx.hasWorkspace && ctx.hasGitRepos,
     execute: async (_ctx, _workspaceId, repoId) => {
       try {
+        const repo = await repoApi.getById(repoId);
         const response = await repoApi.openEditor(repoId, {
           editor_type: null,
-          file_path: null,
+          file_path: repo.default_working_dir ?? null,
         });
         if (response.url) {
           window.open(response.url, '_blank');

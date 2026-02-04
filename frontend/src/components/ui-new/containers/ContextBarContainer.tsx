@@ -1,8 +1,10 @@
 import { useMemo, useCallback, type RefObject } from 'react';
 import { useActions } from '@/contexts/ActionsContext';
 import { useUserSystem } from '@/components/ConfigProvider';
+import { useWorkspaceContext } from '@/contexts/WorkspaceContext';
 import { ContextBar } from '../primitives/ContextBar';
 import {
+  Actions,
   ContextBarActionGroups,
   type ActionDefinition,
   type ActionVisibilityContext,
@@ -63,8 +65,9 @@ export interface ContextBarContainerProps {
 export function ContextBarContainer({
   containerRef,
 }: ContextBarContainerProps) {
-  const { executorContext } = useActions();
+  const { executorContext, executeAction } = useActions();
   const { config } = useUserSystem();
+  const { workspaceId, repos } = useWorkspaceContext();
   const editorType = config?.editor?.editor_type ?? null;
 
   // Get visibility context (now includes dev server state)
@@ -78,6 +81,14 @@ export function ContextBarContainer({
       }
     },
     [executorContext]
+  );
+
+  const handleOpenRepoInIde = useCallback(
+    async (repoId: string) => {
+      if (!workspaceId) return;
+      await executeAction(Actions.RepoOpenInIDE, workspaceId, repoId);
+    },
+    [executeAction, workspaceId]
   );
 
   // Filter visible actions
@@ -97,7 +108,9 @@ export function ContextBarContainer({
       secondaryItems={secondaryItems}
       actionContext={actionCtx}
       onExecuteAction={handleExecuteAction}
+      onOpenRepoInIde={handleOpenRepoInIde}
       editorType={editorType}
+      repos={repos}
     />
   );
 }
