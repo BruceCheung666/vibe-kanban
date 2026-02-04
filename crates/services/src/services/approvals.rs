@@ -383,6 +383,7 @@ mod tests {
                 status,
             },
             content: format!("Reading {file_path}"),
+            actor: None,
             metadata: Some(
                 serde_json::to_value(ToolCallMetadata {
                     tool_call_id: id.to_string(),

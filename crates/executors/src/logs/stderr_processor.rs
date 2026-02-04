@@ -48,6 +48,7 @@ pub fn normalize_stderr_logs(msg_store: Arc<MsgStore>, entry_index_provider: Ent
                     error_type: NormalizedEntryError::Other,
                 },
                 content: strip_ansi_escapes::strip_str(&content),
+                actor: None,
                 metadata: None,
             }))
             .time_gap(Duration::from_secs(2)) // Break messages if they are 2 seconds apart

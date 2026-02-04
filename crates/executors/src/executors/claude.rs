@@ -537,6 +537,7 @@ impl ClaudeLogProcessor {
                                     timestamp: None,
                                     entry_type: NormalizedEntryType::SystemMessage,
                                     content: trimmed.to_string(),
+                                    actor: None,
                                     metadata: None,
                                 };
 
@@ -559,6 +560,7 @@ impl ClaudeLogProcessor {
                     timestamp: None,
                     entry_type: NormalizedEntryType::SystemMessage,
                     content: buffer.trim().to_string(),
+                    actor: None,
                     metadata: None,
                 };
 
@@ -599,6 +601,7 @@ impl ClaudeLogProcessor {
                     entry_type: NormalizedEntryType::ErrorMessage { error_type: NormalizedEntryError::Other,
                     },
                     content: "Claude Code + ANTHROPIC_API_KEY detected. Usage will be billed via Anthropic pay-as-you-go instead of your Claude subscription. If this is unintended, please select the `disable_api_key` checkbox in the conding-agent-configurations settings page.".to_string(),
+                    actor: None,
                     metadata: None,
                 })
             }
@@ -662,6 +665,7 @@ impl ClaudeLogProcessor {
                     timestamp: None,
                     entry_type,
                     content: text.clone(),
+                    actor: None,
                     metadata: Some(
                         serde_json::to_value(content_item).unwrap_or(serde_json::Value::Null),
                     ),
@@ -671,6 +675,7 @@ impl ClaudeLogProcessor {
                 timestamp: None,
                 entry_type: NormalizedEntryType::Thinking,
                 content: thinking.clone(),
+                actor: None,
                 metadata: Some(
                     serde_json::to_value(content_item).unwrap_or(serde_json::Value::Null),
                 ),
@@ -699,6 +704,7 @@ impl ClaudeLogProcessor {
                         status: ToolStatus::Created,
                     },
                     content,
+                    actor: None,
                     metadata: Some(metadata),
                 })
             }
@@ -905,6 +911,7 @@ impl ClaudeLogProcessor {
                             timestamp: None,
                             entry_type: NormalizedEntryType::SystemMessage,
                             content: format!("System: {subtype}"),
+                            actor: None,
                             metadata: Some(
                                 serde_json::to_value(claude_json)
                                     .unwrap_or(serde_json::Value::Null),
@@ -918,6 +925,7 @@ impl ClaudeLogProcessor {
                             timestamp: None,
                             entry_type: NormalizedEntryType::SystemMessage,
                             content: "System message".to_string(),
+                            actor: None,
                             metadata: Some(
                                 serde_json::to_value(claude_json)
                                     .unwrap_or(serde_json::Value::Null),
@@ -971,6 +979,7 @@ impl ClaudeLogProcessor {
                                     status: ToolStatus::Created,
                                 },
                                 content: content_text.clone(),
+                                actor: None,
                                 metadata: Some(metadata),
                             };
                             let is_new = entry_index.is_none();
@@ -1045,6 +1054,7 @@ impl ClaudeLogProcessor {
                                 timestamp: None,
                                 entry_type: NormalizedEntryType::UserMessage,
                                 content: text.clone(),
+                                actor: None,
                                 metadata: Some(
                                     serde_json::to_value(item).unwrap_or(serde_json::Value::Null),
                                 ),
@@ -1062,6 +1072,7 @@ impl ClaudeLogProcessor {
                                 timestamp: None,
                                 entry_type: NormalizedEntryType::SystemMessage,
                                 content: text.clone(),
+                                actor: None,
                                 metadata: None,
                             };
                             let id = entry_index_provider.next();
@@ -1152,6 +1163,7 @@ impl ClaudeLogProcessor {
                                     status,
                                 },
                                 content: info.content.clone(),
+                                actor: None,
                                 metadata: None,
                             };
                             patches.push(ConversationPatch::replace(info.entry_index, entry));
@@ -1190,6 +1202,7 @@ impl ClaudeLogProcessor {
                                     status,
                                 },
                                 content: info.content.clone(),
+                                actor: None,
                                 metadata: None,
                             };
                             patches.push(ConversationPatch::replace(info.entry_index, entry));
@@ -1244,6 +1257,7 @@ impl ClaudeLogProcessor {
                                     status,
                                 },
                                 content: info.content.clone(),
+                                actor: None,
                                 metadata: None,
                             };
                             patches.push(ConversationPatch::replace(info.entry_index, entry));
@@ -1267,6 +1281,7 @@ impl ClaudeLogProcessor {
                         status: ToolStatus::Created,
                     },
                     content,
+                    actor: None,
                     metadata: Some(
                         serde_json::to_value(claude_json).unwrap_or(serde_json::Value::Null),
                     ),
@@ -1386,6 +1401,7 @@ impl ClaudeLogProcessor {
                         },
                         content: serde_json::to_string(claude_json)
                             .unwrap_or_else(|_| "error".to_string()),
+                        actor: None,
                         metadata: Some(
                             serde_json::to_value(claude_json).unwrap_or(serde_json::Value::Null),
                         ),
@@ -1401,6 +1417,7 @@ impl ClaudeLogProcessor {
                         timestamp: None,
                         entry_type: NormalizedEntryType::AssistantMessage,
                         content: text.to_string(),
+                        actor: None,
                         metadata: Some(
                             serde_json::to_value(claude_json).unwrap_or(serde_json::Value::Null),
                         ),
@@ -1428,6 +1445,7 @@ impl ClaudeLogProcessor {
                             .map(|s| s.trim().to_string())
                             .filter(|s| !s.is_empty())
                             .unwrap_or_else(|| "User denied this tool use request".to_string()),
+                        actor: None,
                         metadata: None,
                     }),
                     ApprovalStatus::TimedOut => Some(NormalizedEntry {
@@ -1436,6 +1454,7 @@ impl ClaudeLogProcessor {
                             error_type: NormalizedEntryError::Other,
                         },
                         content: format!("Approval timed out for tool {tool_name}"),
+                        actor: None,
                         metadata: None,
                     }),
                 };
@@ -1453,6 +1472,7 @@ impl ClaudeLogProcessor {
                         "Unrecognized JSON message: {}",
                         serde_json::to_value(data).unwrap_or_default()
                     ),
+                    actor: None,
                     metadata: None,
                 };
                 let idx = entry_index_provider.next();
@@ -1583,6 +1603,7 @@ impl ClaudeLogProcessor {
                 "Tokens used: {} / Context window: {}",
                 self.context_tokens_used, self.main_model_context_window
             ),
+            actor: None,
             metadata: None,
         };
         let idx = entry_index_provider.next();
@@ -1598,6 +1619,7 @@ fn add_system_message(
         timestamp: None,
         entry_type: NormalizedEntryType::SystemMessage,
         content,
+        actor: None,
         metadata: None,
     };
     let id = entry_index_provider.next();
@@ -1617,6 +1639,7 @@ fn extract_model_name(
             timestamp: None,
             entry_type: NormalizedEntryType::SystemMessage,
             content: format!("System initialized with model: {model}"),
+            actor: None,
             metadata: None,
         };
         let id = entry_index_provider.next();

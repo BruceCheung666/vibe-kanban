@@ -168,6 +168,7 @@ impl StandardCodingAgentExecutor for CursorAgent {
                             error_type: NormalizedEntryError::Other,
                         },
                         content,
+                        actor: None,
                         metadata: None,
                     }
                 }))
@@ -184,6 +185,7 @@ impl StandardCodingAgentExecutor for CursorAgent {
                             error_type: NormalizedEntryError::SetupRequired,
                         },
                         content: content.to_string(),
+                        actor: None,
                         metadata: None,
                     };
                     let id = entry_index_provider_stderr.next();
@@ -229,6 +231,7 @@ impl StandardCodingAgentExecutor for CursorAgent {
                                 timestamp: None,
                                 entry_type: NormalizedEntryType::SystemMessage,
                                 content: line.to_string(),
+                                actor: None,
                                 metadata: None,
                             };
 
@@ -265,6 +268,7 @@ impl StandardCodingAgentExecutor for CursorAgent {
                                 timestamp: None,
                                 entry_type: NormalizedEntryType::SystemMessage,
                                 content: format!("System initialized with model: {model}"),
+                                actor: None,
                                 metadata: None,
                             };
                             let id = entry_index_provider.next();
@@ -283,6 +287,7 @@ impl StandardCodingAgentExecutor for CursorAgent {
                                 timestamp: None,
                                 entry_type: NormalizedEntryType::AssistantMessage,
                                 content: current_assistant_message_buffer.clone(),
+                                actor: None,
                                 metadata: None,
                             };
                             if let Some(id) = current_assistant_message_index {
@@ -306,6 +311,7 @@ impl StandardCodingAgentExecutor for CursorAgent {
                                 timestamp: None,
                                 entry_type: NormalizedEntryType::Thinking,
                                 content: current_thinking_message_buffer.clone(),
+                                actor: None,
                                 metadata: None,
                             };
                             if let Some(id) = current_thinking_message_index {
@@ -343,6 +349,7 @@ impl StandardCodingAgentExecutor for CursorAgent {
                                     status: ToolStatus::Created,
                                 },
                                 content,
+                                actor: None,
                                 metadata: None,
                             };
                             let id = entry_index_provider.next();
@@ -464,6 +471,7 @@ impl StandardCodingAgentExecutor for CursorAgent {
                                     status: ToolStatus::Success,
                                 },
                                 content: content_str,
+                                actor: None,
                                 metadata: None,
                             };
                             msg_store.push_patch(ConversationPatch::replace(idx, entry));
@@ -479,6 +487,7 @@ impl StandardCodingAgentExecutor for CursorAgent {
                             timestamp: None,
                             entry_type: NormalizedEntryType::SystemMessage,
                             content: line,
+                            actor: None,
                             metadata: None,
                         };
                         let id = entry_index_provider.next();

@@ -113,10 +113,23 @@ pub struct TokenUsageInfo {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct ActorInfo {
+    pub id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kind: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct NormalizedEntry {
     pub timestamp: Option<String>,
     pub entry_type: NormalizedEntryType,
     pub content: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub actor: Option<ActorInfo>,
     #[ts(skip)]
     pub metadata: Option<serde_json::Value>,
 }

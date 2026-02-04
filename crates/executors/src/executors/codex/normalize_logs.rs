@@ -34,7 +34,7 @@ use crate::{
     approvals::ToolCallMetadata,
     executors::codex::session::SessionHandler,
     logs::{
-        ActionType, CommandExitStatus, CommandRunResult, FileChange, NormalizedEntry,
+        ActionType, ActorInfo, CommandExitStatus, CommandRunResult, FileChange, NormalizedEntry,
         NormalizedEntryError, NormalizedEntryType, TodoItem, ToolResult, ToolResultValueType,
         ToolStatus,
         stderr_processor::normalize_stderr_logs,
@@ -102,6 +102,7 @@ impl ToNormalizedEntry for CommandState {
                 status: self.status.clone(),
             },
             content,
+            actor: None,
             metadata: serde_json::to_value(ToolCallMetadata {
                 tool_call_id: self.call_id.clone(),
             })
@@ -132,6 +133,7 @@ impl ToNormalizedEntry for McpToolState {
                 status: self.status.clone(),
             },
             content: self.invocation.tool.clone(),
+            actor: None,
             metadata: None,
         }
     }
@@ -165,6 +167,7 @@ impl ToNormalizedEntry for WebSearchState {
                 .query
                 .clone()
                 .unwrap_or_else(|| "Web search".to_string()),
+            actor: None,
             metadata: None,
         }
     }
@@ -199,6 +202,7 @@ impl ToNormalizedEntry for PatchEntry {
                 status: self.status.clone(),
             },
             content,
+            actor: None,
             metadata: serde_json::to_value(ToolCallMetadata {
                 tool_call_id: self.call_id.clone(),
             })
@@ -215,6 +219,8 @@ struct LogState {
     mcp_tools: HashMap<String, McpToolState>,
     patches: HashMap<String, PatchState>,
     web_searches: HashMap<String, WebSearchState>,
+    actors: HashMap<String, ActorInfo>,
+    active_actor_id: Option<String>,
 }
 
 enum StreamingTextKind {
@@ -232,6 +238,8 @@ impl LogState {
             mcp_tools: HashMap::new(),
             patches: HashMap::new(),
             web_searches: HashMap::new(),
+            actors: HashMap::new(),
+            active_actor_id: None,
         }
     }
 
@@ -266,6 +274,7 @@ impl LogState {
                 StreamingTextKind::Thinking => NormalizedEntryType::Thinking,
             },
             content: content.clone(),
+            actor: self.active_actor(),
             metadata: None,
         };
         (normalized_entry, index, is_new)
@@ -301,6 +310,21 @@ impl LogState {
 
     fn thinking(&mut self, content: String) -> (NormalizedEntry, usize, bool) {
         self.streaming_text_set(content, StreamingTextKind::Thinking)
+    }
+
+    fn active_actor(&self) -> Option<ActorInfo> {
+        self.active_actor_id
+            .as_ref()
+            .and_then(|id| self.actors.get(id))
+            .cloned()
+    }
+
+    fn register_actor(&mut self, actor: ActorInfo) {
+        self.actors.insert(actor.id.clone(), actor);
+    }
+
+    fn set_active_actor(&mut self, actor_id: Option<String>) {
+        self.active_actor_id = actor_id;
     }
 }
 
@@ -675,6 +699,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                             timestamp: None,
                             entry_type: NormalizedEntryType::SystemMessage,
                             content: format!("Background event: {message}"),
+                            actor: None,
                             metadata: None,
                         },
                     );
@@ -693,6 +718,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                                 error_type: NormalizedEntryError::Other,
                             },
                             content: format!("Stream error: {message} {codex_error_info:?}"),
+                            actor: None,
                             metadata: None,
                         },
                     );
@@ -922,6 +948,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                                 status: ToolStatus::Success,
                             },
                             content: relative_path.to_string(),
+                            actor: None,
                             metadata: None,
                         },
                     );
@@ -962,6 +989,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                                 status: ToolStatus::Success,
                             },
                             content,
+                            actor: None,
                             metadata: None,
                         },
                     );
@@ -976,6 +1004,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                                 error_type: NormalizedEntryError::Other,
                             },
                             content: message,
+                            actor: None,
                             metadata: None,
                         },
                     );
@@ -993,6 +1022,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                                 error_type: NormalizedEntryError::Other,
                             },
                             content: format!("Error: {message} {codex_error_info:?}"),
+                            actor: None,
                             metadata: None,
                         },
                     );
@@ -1031,6 +1061,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                                     info.last_token_usage.total_tokens,
                                     info.model_context_window.unwrap_or_default()
                                 ),
+                                actor: None,
                                 metadata: None,
                             },
                         );
@@ -1044,9 +1075,90 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                             timestamp: None,
                             entry_type: NormalizedEntryType::SystemMessage,
                             content: "Context compacted".to_string(),
+                            actor: None,
                             metadata: None,
                         },
                     );
+                }
+                EventMsg::CollabAgentSpawnBegin(payload) => {
+                    if let Some(actor) = actor_from_payload(&payload) {
+                        state.register_actor(actor.clone());
+                        state.set_active_actor(Some(actor.id.clone()));
+                        add_normalized_entry(
+                            &msg_store,
+                            &entry_index,
+                            NormalizedEntry {
+                                timestamp: None,
+                                entry_type: NormalizedEntryType::SystemMessage,
+                                content: format!(
+                                    "Collab agent started: {}",
+                                    format_actor_label(&actor)
+                                ),
+                                actor: Some(actor),
+                                metadata: None,
+                            },
+                        );
+                    }
+                }
+                EventMsg::CollabAgentSpawnEnd(payload) => {
+                    if let Some(actor) = actor_from_payload(&payload) {
+                        state.register_actor(actor.clone());
+                        add_normalized_entry(
+                            &msg_store,
+                            &entry_index,
+                            NormalizedEntry {
+                                timestamp: None,
+                                entry_type: NormalizedEntryType::SystemMessage,
+                                content: format!(
+                                    "Collab agent ready: {}",
+                                    format_actor_label(&actor)
+                                ),
+                                actor: Some(actor),
+                                metadata: None,
+                            },
+                        );
+                    }
+                }
+                EventMsg::CollabAgentInteractionBegin(payload) => {
+                    if let Some(actor) = actor_from_payload(&payload) {
+                        state.register_actor(actor.clone());
+                        state.set_active_actor(Some(actor.id.clone()));
+                        add_normalized_entry(
+                            &msg_store,
+                            &entry_index,
+                            NormalizedEntry {
+                                timestamp: None,
+                                entry_type: NormalizedEntryType::SystemMessage,
+                                content: format!(
+                                    "Collab agent active: {}",
+                                    format_actor_label(&actor)
+                                ),
+                                actor: Some(actor),
+                                metadata: None,
+                            },
+                        );
+                    }
+                }
+                EventMsg::CollabAgentInteractionEnd(payload) => {
+                    if let Some(actor) = actor_from_payload(&payload) {
+                        state.set_active_actor(None);
+                        add_normalized_entry(
+                            &msg_store,
+                            &entry_index,
+                            NormalizedEntry {
+                                timestamp: None,
+                                entry_type: NormalizedEntryType::SystemMessage,
+                                content: format!(
+                                    "Collab agent idle: {}",
+                                    format_actor_label(&actor)
+                                ),
+                                actor: Some(actor),
+                                metadata: None,
+                            },
+                        );
+                    } else {
+                        state.set_active_actor(None);
+                    }
                 }
                 EventMsg::AgentReasoningRawContent(..)
                 | EventMsg::AgentReasoningRawContentDelta(..)
@@ -1077,10 +1189,6 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                 | EventMsg::TerminalInteraction(..)
                 | EventMsg::ElicitationRequest(..)
                 | EventMsg::TurnComplete(..)
-                | EventMsg::CollabAgentSpawnBegin(..)
-                | EventMsg::CollabAgentSpawnEnd(..)
-                | EventMsg::CollabAgentInteractionBegin(..)
-                | EventMsg::CollabAgentInteractionEnd(..)
                 | EventMsg::CollabWaitingBegin(..)
                 | EventMsg::CollabWaitingEnd(..)
                 | EventMsg::CollabCloseBegin(..)
@@ -1132,9 +1240,57 @@ fn handle_model_params(
             timestamp: None,
             entry_type: NormalizedEntryType::SystemMessage,
             content: params.join("  ").to_string(),
+            actor: None,
             metadata: None,
         },
     );
+}
+
+fn actor_from_payload<T: Serialize>(payload: &T) -> Option<ActorInfo> {
+    serde_json::to_value(payload)
+        .ok()
+        .and_then(actor_from_value)
+}
+
+fn actor_from_value(value: Value) -> Option<ActorInfo> {
+    actor_from_map(&value).or_else(|| {
+        ["agent", "actor", "collab_agent", "collabAgent"]
+            .iter()
+            .find_map(|key| value.get(*key).cloned())
+            .and_then(|inner| actor_from_map(&inner))
+    })
+}
+
+fn actor_from_map(value: &Value) -> Option<ActorInfo> {
+    if !value.is_object() {
+        return None;
+    }
+    let id = extract_actor_field(value, &["agent_id", "actor_id", "id", "agentId", "actorId"])?;
+    let name = extract_actor_field(value, &["name", "agent_name", "agentName"]);
+    let role = extract_actor_field(value, &["role", "agent_role", "agentRole"]);
+    let kind = extract_actor_field(value, &["kind", "type"]).or(Some("collab".to_string()));
+    Some(ActorInfo {
+        id,
+        name,
+        role,
+        kind,
+    })
+}
+
+fn extract_actor_field(value: &Value, keys: &[&str]) -> Option<String> {
+    keys.iter()
+        .find_map(|key| value.get(*key))
+        .and_then(|val| val.as_str())
+        .map(|val| val.to_string())
+}
+
+fn format_actor_label(actor: &ActorInfo) -> String {
+    actor
+        .name
+        .as_ref()
+        .or(actor.role.as_ref())
+        .unwrap_or(&actor.id)
+        .to_string()
 }
 
 fn build_command_output(stdout: Option<&str>, stderr: Option<&str>) -> Option<String> {
@@ -1192,6 +1348,7 @@ impl ToNormalizedEntry for Error {
                     error_type: NormalizedEntryError::Other,
                 },
                 content: error.clone(),
+                actor: None,
                 metadata: None,
             },
             Error::AuthRequired { error } => NormalizedEntry {
@@ -1264,6 +1421,7 @@ impl ToNormalizedEntryOpt for Approval {
                     .unwrap_or_else(|| "User denied this tool use request".to_string())
                     .trim()
                     .to_string(),
+                actor: None,
                 metadata: None,
             }),
             ApprovalStatus::TimedOut => Some(NormalizedEntry {
@@ -1272,6 +1430,7 @@ impl ToNormalizedEntryOpt for Approval {
                     error_type: NormalizedEntryError::Other,
                 },
                 content: format!("Approval timed out for tool {tool_name}"),
+                actor: None,
                 metadata: None,
             }),
         }

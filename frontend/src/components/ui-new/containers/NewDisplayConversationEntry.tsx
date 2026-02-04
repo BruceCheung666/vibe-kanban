@@ -36,6 +36,10 @@ import { ChatThinkingMessage } from '../primitives/conversation/ChatThinkingMess
 import { ChatErrorMessage } from '../primitives/conversation/ChatErrorMessage';
 import { ChatScriptEntry } from '../primitives/conversation/ChatScriptEntry';
 import { ChatSubagentEntry } from '../primitives/conversation/ChatSubagentEntry';
+import {
+  ChatActorBadge,
+  type ActorInfo,
+} from '../primitives/conversation/ChatActorBadge';
 import { ChatAggregatedToolEntries } from '../primitives/conversation/ChatAggregatedToolEntries';
 import { ChatAggregatedDiffEntries } from '../primitives/conversation/ChatAggregatedDiffEntries';
 import type { DiffInput } from '../primitives/conversation/PierreConversationDiff';
@@ -284,6 +288,8 @@ function NewDisplayConversationEntry(props: Props) {
   }
 
   const entryType = entry.entry_type;
+  const actor = (entry as { actor?: ActorInfo | null }).actor ?? null;
+  const actorBadge = actor ? <ChatActorBadge actor={actor} /> : null;
 
   switch (entryType.type) {
     case 'tool_use':
@@ -301,26 +307,35 @@ function NewDisplayConversationEntry(props: Props) {
 
     case 'assistant_message':
       return (
-        <AssistantMessageEntry
-          content={entry.content}
-          workspaceId={taskAttempt?.id}
-        />
+        <div className="space-y-2">
+          {actorBadge}
+          <AssistantMessageEntry
+            content={entry.content}
+            workspaceId={taskAttempt?.id}
+          />
+        </div>
       );
 
     case 'system_message':
       return (
-        <SystemMessageEntry
-          content={entry.content}
-          expansionKey={expansionKey}
-        />
+        <div className="space-y-2">
+          {actorBadge}
+          <SystemMessageEntry
+            content={entry.content}
+            expansionKey={expansionKey}
+          />
+        </div>
       );
 
     case 'thinking':
       return (
-        <ChatThinkingMessage
-          content={entry.content}
-          taskAttemptId={taskAttempt?.id}
-        />
+        <div className="space-y-2">
+          {actorBadge}
+          <ChatThinkingMessage
+            content={entry.content}
+            taskAttemptId={taskAttempt?.id}
+          />
+        </div>
       );
 
     case 'error_message':

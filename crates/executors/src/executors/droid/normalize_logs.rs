@@ -54,6 +54,7 @@ pub fn normalize_logs(
                                 error_type: NormalizedEntryError::Other,
                             },
                             content: error.message,
+                            actor: None,
                             metadata: None,
                         };
                         add_normalized_entry(&msg_store, &entry_index_provider, entry);
@@ -65,6 +66,7 @@ pub fn normalize_logs(
                             timestamp: None,
                             entry_type: NormalizedEntryType::SystemMessage,
                             content: strip_ansi_escapes::strip_str(trimmed).to_string(),
+                            actor: None,
                             metadata: None,
                         };
 
@@ -91,6 +93,7 @@ pub fn normalize_logs(
                             timestamp: None,
                             entry_type: NormalizedEntryType::SystemMessage,
                             content: format!("model: {model}"),
+                            actor: None,
                             metadata: None,
                         };
                         add_normalized_entry(&msg_store, &entry_index_provider, entry);
@@ -112,6 +115,7 @@ pub fn normalize_logs(
                         timestamp: None,
                         entry_type,
                         content: text.clone(),
+                        actor: None,
                         metadata: None,
                     };
 
@@ -646,6 +650,7 @@ pub fn normalize_logs(
                         timestamp: None,
                         entry_type: NormalizedEntryType::AssistantMessage,
                         content: final_text.clone(),
+                        actor: None,
                         metadata: None,
                     };
                     add_normalized_entry(&msg_store, &entry_index_provider, entry);
@@ -659,6 +664,7 @@ pub fn normalize_logs(
                             error_type: NormalizedEntryError::Other,
                         },
                         content: message.clone(),
+                        actor: None,
                         metadata: None,
                     };
                     add_normalized_entry(&msg_store, &state.entry_index, entry);
@@ -679,6 +685,7 @@ fn normalize_stderr_logs(msg_store: Arc<MsgStore>, entry_index_provider: EntryIn
                     error_type: NormalizedEntryError::Other,
                 },
                 content,
+                actor: None,
                 metadata: None,
             }))
             .transform_lines(Box::new(|lines| {
@@ -1024,6 +1031,7 @@ impl ToNormalizedEntry for FileReadState {
                 status: self.status.clone(),
             },
             content: self.path.clone(),
+            actor: None,
             metadata: None,
         }
     }
@@ -1050,6 +1058,7 @@ impl ToNormalizedEntry for FileEditState {
                 status: self.status.clone(),
             },
             content: self.path.clone(),
+            actor: None,
             metadata: None,
         }
     }
@@ -1092,6 +1101,7 @@ impl ToNormalizedEntry for CommandRunState {
                 status: self.status.clone(),
             },
             content: self.command.clone(),
+            actor: None,
             metadata: None,
         }
     }
@@ -1123,6 +1133,7 @@ impl ToNormalizedEntry for TodoManagementState {
                 status: self.status.clone(),
             },
             content,
+            actor: None,
             metadata: None,
         }
     }
@@ -1147,6 +1158,7 @@ impl ToNormalizedEntry for SearchState {
                 status: self.status.clone(),
             },
             content: self.query.clone(),
+            actor: None,
             metadata: None,
         }
     }
@@ -1171,6 +1183,7 @@ impl ToNormalizedEntry for WebFetchState {
                 status: self.status.clone(),
             },
             content: self.url.clone(),
+            actor: None,
             metadata: None,
         }
     }
@@ -1205,6 +1218,7 @@ impl ToNormalizedEntry for GenericToolState {
                 status: self.status.clone(),
             },
             content: self.name.clone(),
+            actor: None,
             metadata: None,
         }
     }

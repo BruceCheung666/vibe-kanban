@@ -1137,6 +1137,7 @@ pub trait ContainerService {
                         error_type: NormalizedEntryError::SetupRequired,
                     },
                     content: help_text,
+                    actor: None,
                     metadata: None,
                 };
                 let patch = ConversationPatch::add_normalized_entry(2, error_message);

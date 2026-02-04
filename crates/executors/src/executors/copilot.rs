@@ -245,6 +245,7 @@ impl Copilot {
                 timestamp: None,
                 entry_type: NormalizedEntryType::AssistantMessage,
                 content,
+                actor: None,
                 metadata: None,
             }))
             .transform_lines(Box::new(|lines| {

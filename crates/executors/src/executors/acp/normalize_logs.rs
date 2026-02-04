@@ -56,6 +56,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                                 error_type: NormalizedEntryError::Other,
                             },
                             content: msg,
+                            actor: None,
                             metadata: None,
                         };
                         msg_store.push_patch(ConversationPatch::add_normalized_entry(idx, entry));
@@ -84,6 +85,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                                     timestamp: None,
                                     entry_type: NormalizedEntryType::AssistantMessage,
                                     content: s.content.clone(),
+                                    actor: None,
                                     metadata: None,
                                 };
                                 let patch = if is_new {
@@ -112,6 +114,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                                     timestamp: None,
                                     entry_type: NormalizedEntryType::Thinking,
                                     content: s.content.clone(),
+                                    actor: None,
                                     metadata: None,
                                 };
                                 let patch = if is_new {
@@ -153,6 +156,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                                 status: LogToolStatus::Success,
                             },
                             content: "Plan updated".to_string(),
+                            actor: None,
                             metadata: None,
                         };
                         msg_store.push_patch(ConversationPatch::add_normalized_entry(idx, entry));
@@ -167,6 +171,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                             timestamp: None,
                             entry_type: NormalizedEntryType::SystemMessage,
                             content: body,
+                            actor: None,
                             metadata: None,
                         };
                         msg_store.push_patch(ConversationPatch::add_normalized_entry(idx, entry));
@@ -177,6 +182,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                             timestamp: None,
                             entry_type: NormalizedEntryType::SystemMessage,
                             content: format!("Current mode: {}", mode_id.0),
+                            actor: None,
                             metadata: None,
                         };
                         msg_store.push_patch(ConversationPatch::add_normalized_entry(idx, entry));
@@ -246,6 +252,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                                     })
                                     .trim()
                                     .to_string(),
+                                actor: None,
                                 metadata: None,
                             };
                             msg_store
@@ -283,6 +290,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                     status: convert_tool_status(&tool_data.status),
                 },
                 content: get_tool_content(tool_data),
+                actor: None,
                 metadata: serde_json::to_value(ToolCallMetadata {
                     tool_call_id: tool_data.id.0.to_string(),
                 })

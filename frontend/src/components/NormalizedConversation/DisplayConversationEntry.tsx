@@ -736,6 +736,23 @@ function DisplayConversationEntry({
   const isTokenUsage = entryType.type === 'token_usage_info';
   const isFileEdit = (a: ActionType): a is FileEditAction =>
     a.action === 'file_edit';
+  const actor = (entry as {
+    actor?: {
+      id: string;
+      name?: string | null;
+      role?: string | null;
+      kind?: string | null;
+    } | null;
+  }).actor;
+  const actorBadge =
+    isNormalizedEntry(entry) && actor ? (
+      <div className="mb-1 inline-flex items-center gap-2 rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-low border-border">
+        <span>{(actor.kind ?? 'agent').toUpperCase()}</span>
+        <span className="text-high normal-case">
+          {actor.name ?? actor.role ?? actor.id}
+        </span>
+      </div>
+    ) : null;
 
   if (isTokenUsage) {
     return null;
@@ -887,6 +904,7 @@ function DisplayConversationEntry({
       <div
         className={`px-4 py-2 text-sm ${greyed ? 'opacity-50 pointer-events-none' : ''}`}
       >
+        {actorBadge}
         <CollapsibleEntry
           content={isNormalizedEntry(entry) ? entry.content : ''}
           markdown={shouldRenderMarkdown(entryType)}
@@ -925,6 +943,7 @@ function DisplayConversationEntry({
 
   return (
     <div className="px-4 py-2 text-sm">
+      {actorBadge}
       <div className={getContentClassName(entryType)}>
         {shouldRenderMarkdown(entryType) ? (
           <WYSIWYGEditor

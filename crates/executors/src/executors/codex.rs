@@ -118,6 +118,33 @@ pub enum ReasoningSummaryFormat {
     Experimental,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, TS, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub struct CollabAgent {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub instructions: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, TS, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub struct CollabConfig {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub agents: Option<Vec<CollabAgent>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_parallel: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub strategy: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub share_context: Option<bool>,
+}
+
 enum CodexSessionAction {
     Chat { prompt: String },
     Review { target: ReviewTarget },
@@ -154,6 +181,8 @@ pub struct Codex {
     pub compact_prompt: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub developer_instructions: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub collab: Option<CollabConfig>,
     #[serde(flatten)]
     pub cmd: CmdOverrides,
 
@@ -351,6 +380,12 @@ impl Codex {
                 "model_reasoning_summary_format".to_string(),
                 Value::String(format.as_ref().to_string()),
             );
+        }
+
+        if let Some(collab) = &self.collab
+            && let Ok(value) = serde_json::to_value(collab)
+        {
+            overrides.insert("collab".to_string(), value);
         }
 
         if overrides.is_empty() {

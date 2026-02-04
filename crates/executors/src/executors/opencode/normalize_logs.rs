@@ -28,6 +28,7 @@ fn system_message(content: String) -> NormalizedEntry {
         timestamp: None,
         entry_type: NormalizedEntryType::SystemMessage,
         content,
+        actor: None,
         metadata: None,
     }
 }
@@ -96,6 +97,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                                 "Tokens used: {} / Context window: {}",
                                 total_tokens, model_context_window
                             ),
+                            actor: None,
                             metadata: None,
                         },
                     );
@@ -108,6 +110,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                             timestamp: None,
                             entry_type: NormalizedEntryType::AssistantMessage,
                             content: message,
+                            actor: None,
                             metadata: None,
                         },
                     );
@@ -132,6 +135,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                                 timestamp: None,
                                 entry_type: NormalizedEntryType::SystemMessage,
                                 content,
+                                actor: None,
                                 metadata: None,
                             },
                         ),
@@ -148,6 +152,7 @@ pub fn normalize_logs(msg_store: Arc<MsgStore>, worktree_path: &Path) {
                                     error_type: NormalizedEntryError::Other,
                                 },
                                 content: message,
+                                actor: None,
                                 metadata: None,
                             },
                         ),
@@ -275,6 +280,7 @@ impl LogState {
                         timestamp: None,
                         entry_type: NormalizedEntryType::ErrorMessage { error_type },
                         content: message,
+                        actor: None,
                         metadata: None,
                     },
                 );
@@ -335,6 +341,7 @@ impl LogState {
                 status: ToolStatus::Success,
             },
             content: "TODO list updated".to_string(),
+            actor: None,
             metadata: None,
         };
 
@@ -475,6 +482,7 @@ impl LogState {
                         .unwrap_or_else(|| "User denied this tool use request".to_string())
                         .trim()
                         .to_string(),
+                    actor: None,
                     metadata: None,
                 },
             );
@@ -613,6 +621,7 @@ fn update_streaming_text(
         timestamp: None,
         entry_type,
         content: state.content.clone(),
+        actor: None,
         metadata: None,
     };
     upsert_normalized_entry(msg_store, state.index, entry, is_new);
@@ -982,6 +991,7 @@ impl ToolCallState {
                 status: self.tool_status(),
             },
             content,
+            actor: None,
             metadata: serde_json::to_value(ToolCallMetadata {
                 tool_call_id: self.call_id.clone(),
             })

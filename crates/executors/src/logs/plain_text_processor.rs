@@ -406,6 +406,7 @@ mod tests {
                 timestamp: None, // Avoid creating artificial timestamps during normalization
                 entry_type: NormalizedEntryType::SystemMessage,
                 content: content.to_string(),
+                actor: None,
                 metadata: None,
             }
         };
@@ -435,6 +436,7 @@ mod tests {
                         status: ToolStatus::Success,
                     },
                     content,
+                    actor: None,
                     metadata: None,
                 }
             } else {
@@ -463,6 +465,7 @@ mod tests {
                 timestamp: None,
                 entry_type: NormalizedEntryType::SystemMessage,
                 content,
+                actor: None,
                 metadata: None,
             }
         };
