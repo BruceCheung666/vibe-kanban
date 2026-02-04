@@ -1,9 +1,9 @@
 import { useRef, useState, type RefObject } from 'react';
-import { CopyIcon, type Icon } from '@phosphor-icons/react';
+import { ArrowSquareOutIcon, CopyIcon, type Icon } from '@phosphor-icons/react';
 import type { EditorType, RepoWithTargetBranch } from 'shared/types';
 import { cn } from '@/lib/utils';
 import { Tooltip } from './Tooltip';
-import { IdeIcon, getIdeName } from '@/components/ide/IdeIcon';
+import { getIdeName } from '@/components/ide/IdeIcon';
 import { useContextBarPosition } from '@/hooks/useContextBarPosition';
 import {
   type ActionDefinition,
@@ -205,9 +205,9 @@ export function ContextBar({
                   onPointerLeave={scheduleRepoMenuClose}
                   disabled={!enabled}
                 >
-                  <IdeIcon
-                    editorType={editorType}
-                    className="size-icon-xs opacity-50 group-hover:opacity-80 transition-opacity"
+                  <ArrowSquareOutIcon
+                    className="size-icon-base opacity-60 group-hover:opacity-90 transition-opacity"
+                    weight="bold"
                   />
                 </button>
               </DropdownMenuTrigger>
@@ -252,9 +252,9 @@ export function ContextBar({
               onClick={() => onExecuteAction(action)}
               disabled={!enabled}
             >
-              <IdeIcon
-                editorType={editorType}
-                className="size-icon-xs opacity-50 group-hover:opacity-80 transition-opacity"
+              <ArrowSquareOutIcon
+                className="size-icon-base opacity-60 group-hover:opacity-90 transition-opacity"
+                weight="bold"
               />
             </button>
           </Tooltip>

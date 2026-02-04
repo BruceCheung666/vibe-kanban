@@ -1164,7 +1164,7 @@ export const Actions = {
       try {
         const repo = await repoApi.getById(repoId);
         const response = await repoApi.openEditor(repoId, {
-          editor_type: null,
+          editor_type: repo.editor_type ?? null,
           file_path: repo.default_working_dir ?? null,
         });
         if (response.url) {

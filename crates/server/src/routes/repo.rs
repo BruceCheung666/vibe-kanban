@@ -23,7 +23,7 @@ use uuid::Uuid;
 use crate::{
     DeploymentImpl,
     error::ApiError,
-    routes::projects::{OpenEditorRequest, OpenEditorResponse},
+    routes::projects::OpenEditorResponse,
 };
 
 #[derive(Debug, Deserialize, TS)]
@@ -44,6 +44,12 @@ pub struct InitRepoRequest {
 #[ts(export)]
 pub struct BatchRepoRequest {
     pub ids: Vec<Uuid>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct OpenEditorRequest {
+    pub editor_type: Option<String>,
+    pub file_path: Option<String>,
 }
 
 pub async fn register_repo(
@@ -156,12 +162,26 @@ pub async fn open_repo_in_editor(
         config.editor.with_override(editor_type_str)
     };
 
-    match editor_config.open_file(&repo.path).await {
+    let path = payload
+        .as_ref()
+        .and_then(|req| req.file_path.as_deref())
+        .filter(|file_path| !file_path.is_empty())
+        .map(|file_path| {
+            let path = std::path::Path::new(file_path);
+            if path.is_absolute() {
+                path.to_path_buf()
+            } else {
+                repo.path.join(path)
+            }
+        })
+        .unwrap_or_else(|| repo.path.clone());
+
+    match editor_config.open_file(&path).await {
         Ok(url) => {
             tracing::info!(
                 "Opened editor for repo {} at path: {}{}",
                 repo_id,
-                repo.path.to_string_lossy(),
+                path.to_string_lossy(),
                 if url.is_some() { " (remote mode)" } else { "" }
             );
 
