@@ -196,7 +196,8 @@ export function RemoteCloudHostsSettingsCardContent({
       if (isRemoteMode) {
         await pairRemoteHost({
           hostId: selectedHost.id,
-          hostName: effectiveHostName,
+          hostName: selectedHost.name,
+          clientName: effectiveHostName,
           normalizedCode,
         });
       } else {

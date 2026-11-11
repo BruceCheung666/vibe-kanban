@@ -34,12 +34,14 @@ export const RELAY_APP_BAR_HOSTS_QUERY_KEY = ['relay-app-bar-hosts'] as const;
 interface PairRelayHostInput {
   hostId: string;
   hostName: string;
+  clientName: string;
   normalizedCode: string;
 }
 
 async function pairRelayHost({
   hostId,
   hostName,
+  clientName,
   normalizedCode,
 }: PairRelayHostInput): Promise<void> {
   const authCode = await createRemoteSession(hostId);
@@ -76,7 +78,7 @@ async function pairRelayHost({
     {
       enrollment_id: startData.enrollment_id,
       client_id: relayClientIdentity.clientId,
-      client_name: relayClientIdentity.clientName,
+      client_name: clientName,
       client_browser: relayClientIdentity.clientBrowser,
       client_os: relayClientIdentity.clientOs,
       client_device: relayClientIdentity.clientDevice,
@@ -100,7 +102,7 @@ async function pairRelayHost({
     host_id: hostId,
     host_name: hostName,
     client_id: relayClientIdentity.clientId,
-    client_name: relayClientIdentity.clientName,
+    client_name: clientName,
     signing_session_id: finishData.signing_session_id,
     public_key_b64: publicKeyB64,
     private_key_jwk: privateKeyJwk,
